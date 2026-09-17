@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="hi" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Story Voice Studio – हिंदी TTS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <span class="brand-icon">🎙️</span>
+                <span class="brand-text">Story Voice Studio</span>
+            </div>
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-panel="studio"><span>🎙️</span> Audio Studio</button>
+                <button class="nav-item" data-panel="video-studio"><span>🎬</span> Text to Video</button>
+                <button class="nav-item" data-panel="settings"><span>⚙️</span> Settings</button>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="themeToggle" class="theme-btn" title="Toggle theme">🌓 Theme</button>
+            </div>
+        </aside>
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Menu">☰</button>
+
+        <main class="main">
+            <header class="topbar">
+                <h1>AI Story Voice Studio</h1>
+                <p class="subtitle">Hindi · Hinglish · up to 50,000 characters · Single Voice</p>
+            </header>
+
+            <div class="workspace" id="audioWorkspace">
+                <section class="panel editor-panel">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Story Editor</h2>
+                            <div class="mode-tabs" id="modeTabs">
+                                <button class="mode-tab active" data-mode="normal">Normal</button>
+                                <button class="mode-tab" data-mode="story">Story</button>
+                            </div>
+                        </div>
+
+                        <div class="textarea-wrap">
+                            <textarea id="textInput" placeholder="यहाँ अपनी कहानी लिखें या पेस्ट करें… (Hindi / Hinglish)" spellcheck="true"></textarea>
+                            <div class="char-bar">
+                                <span id="charCount">0</span> / <span id="maxChars">50000</span> characters
+                                <span class="draft-status" id="draftStatus"></span>
+                            </div>
+                        </div>
+
+                        <div class="controls-block">
+                            <div class="form-row">
+                                <div class="field">
+                                    <label>Voice Gender</label>
+                                    <select id="voiceGender">
+                                        <option value="male">Male</option>
+                                        <option value="female" selected>Female</option>
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <label>Voice Type</label>
+                                    <select id="voicePreset">
+                                        <option value="female_normal">Female Normal</option>
+                                        <option value="female_soft">Female Soft</option>
+                                        <option value="female_sweet">Female Sweet</option>
+                                        <option value="female_mature">Female Mature</option>
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <label>Pitch <span id="pitchVal">0</span></label>
+                                    <input type="range" id="pitchSlider" min="-1" max="1" step="0.1" value="0">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="field">
+                                    <label>Emotion</label>
+                                    <select id="globalEmotion">
+                                        <option value="neutral" selected>Neutral</option>
+                                        <option value="happy">Happy</option>
+                                        <option value="sad">Sad</option>
+                                        <option value="angry">Angry</option>
+                                        <option value="romantic">Romantic</option>
+                                        <option value="calm">Calm</option>
+                                        <option value="soft">Soft</option>
+                                        <option value="intense">Intense</option>
+                                        <option value="concerned">Concerned</option>
+                                        <option value="surprised">Surprised</option>
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <label>Emotion Intensity</label>
+                                    <select id="emotionIntensity">
+                                        <option value="low">Low</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="high">High</option>
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <label class="toggle"><input type="checkbox" id="autoEmotion" checked> Auto Emotion</label>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="field">
+                                    <label>Audio Quality</label>
+                                    <select id="qualitySelect">
+                                        <option value="standard">Standard (128k)</option>
+                                        <option value="high" selected>High (192k)</option>
+                                        <option value="ultra">Ultra (256k)</option>
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <label>Generation Speed</label>
+                                    <select id="speedMode">
+                                        <option value="reliable">Reliable (1x)</option>
+                                        <option value="balanced" selected>Balanced (3x)</option>
+                                        <option value="fast">Fast (4x)</option>
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <label class="toggle"><input type="checkbox" id="hinglishMode"> Hinglish Mode</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="action-row">
+                            <button id="previewBtn" class="btn btn-outline">🔊 Preview Voice</button>
+                            <button id="analyzeBtn" class="btn btn-outline">🔍 Analyze</button>
+                            <button id="generateBtn" class="btn btn-primary">
+                                <span class="btn-text">🎙️ Generate Audio</span>
+                                <span class="btn-loader hidden" id="btnLoader"></span>
+                            </button>
+                            <button id="cancelBtn" class="btn btn-danger hidden">Cancel</button>
+                        </div>
+                    </div>
+                </section>
+
+                <aside class="panel side-panel">
+                    <div class="card progress-card" id="progressCard">
+                        <h3>Generation Progress</h3>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="progressFill" style="width:0%"></div>
+                        </div>
+                        <div class="progress-meta">
+                            <span id="progressPct">0%</span>
+                            <span id="progressStage">Idle</span>
+                        </div>
+                        <div class="progress-detail" id="progressDetail">Ready</div>
+                        <div class="eta" id="etaText">Estimated time: —</div>
+                    </div>
+
+                    <div class="card stats-card">
+                        <h3>Project Info</h3>
+                        <ul class="stats-list">
+                            <li><span>Characters</span><strong id="statChars">0 / 50000</strong></li>
+                            <li><span>Words</span><strong id="statWords">0</strong></li>
+                            <li><span>Est. Duration</span><strong id="statDuration">—</strong></li>
+                            <li><span>Mode</span><strong id="statMode">Normal</strong></li>
+                            <li><span>Voice</span><strong id="statVoice">Female Normal</strong></li>
+                            <li><span>Quality</span><strong id="statQuality">High</strong></li>
+                        </ul>
+                    </div>
+
+                    <div class="card audio-card hidden" id="audioSection">
+                        <h3>✅ Audio Ready</h3>
+                        <audio id="audioPlayer" controls></audio>
+                        <div class="audio-actions">
+                            <button id="downloadBtn" class="btn btn-success">⬇️ Download MP3</button>
+                            <button id="newBtn" class="btn btn-secondary">➕ New</button>
+                        </div>
+                    </div>
+
+                    <div class="card analysis-card hidden" id="analysisCard">
+                        <h3>Story Analysis</h3>
+                        <div id="analysisContent"></div>
+                    </div>
+
+                    <div id="messageContainer" class="message-container"></div>
+                </aside>
+            </div>
+
+            <!-- TEXT TO VIDEO WORKSPACE -->
+            <div class="workspace hidden" id="videoWorkspace">
+                <section class="panel editor-panel">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>🎬 Text to Video Studio</h2>
+                            <span class="badge-pill">AI MP4 Video Generator</span>
+                        </div>
+
+                        <div class="textarea-wrap">
+                            <textarea id="videoTextInput" placeholder="यहाँ अपनी कहानी या स्क्रिप्ट लिखें जिसे वीडियो में बदलना है… (Hindi / Hinglish)" spellcheck="true"></textarea>
+                            <div class="char-bar">
+                                <span id="videoCharCount">0</span> characters
+                                <button id="syncTtsTextBtn" class="btn-sm btn-outline">🔄 Sync from Audio Studio</button>
+                            </div>
+                        </div>
+
+                        <div class="controls-block">
+                            <div class="form-row">
+                                <div class="field">
+                                    <label>Video Title / Label</label>
+                                    <input type="text" id="videoTitleInput" placeholder="जैसे: एक अनोखी कहानी" value="मेरी हिंदी कहानी">
+                                </div>
+                                <div class="field">
+                                    <label>Aspect Ratio</label>
+                                    <select id="videoAspectRatio">
+                                        <option value="16:9" selected>16:9 YouTube (Landscape)</option>
+                                        <option value="9:16">9:16 Shorts / Reels (Portrait)</option>
+                                        <option value="1:1">1:1 Square (Instagram / Post)</option>
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <label>Visual Theme Style</label>
+                                    <select id="videoThemeSelect">
+                                        <option value="cinematic" selected>🎬 Cinematic Dark</option>
+                                        <option value="cyberpunk">⚡ Cyberpunk Neon</option>
+                                        <option value="storybook">📖 Storybook Gold</option>
+                                        <option value="anime">🌅 Anime Sunset</option>
+                                        <option value="nature">🌿 Nature Emerald</option>
+                                        <option value="minimal">🖤 Minimal Obsidian</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="field">
+                                    <label>Voice Gender</label>
+                                    <select id="videoVoiceGender">
+                                        <option value="male">Male</option>
+                                        <option value="female" selected>Female</option>
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <label>Voice Type</label>
+                                    <select id="videoVoicePreset">
+                                        <option value="female_normal">Female Normal</option>
+                                        <option value="female_soft">Female Soft</option>
+                                        <option value="female_sweet">Female Sweet</option>
+                                        <option value="female_mature">Female Mature</option>
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <label>Narration Speed</label>
+                                    <select id="videoSpeed">
+                                        <option value="Slow">Slow</option>
+                                        <option value="Normal" selected>Normal</option>
+                                        <option value="Fast">Fast</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="action-row">
+                            <button id="generateVideoBtn" class="btn btn-primary btn-lg">
+                                <span class="btn-text">🎥 Generate Video (MP4)</span>
+                                <span class="btn-loader hidden" id="videoBtnLoader"></span>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <aside class="panel side-panel">
+                    <div class="card progress-card" id="videoProgressCard">
+                        <h3>Video Render Progress</h3>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="videoProgressFill" style="width:0%"></div>
+                        </div>
+                        <div class="progress-meta">
+                            <span id="videoProgressPct">0%</span>
+                            <span id="videoProgressStage">Ready</span>
+                        </div>
+                        <div class="progress-detail" id="videoProgressDetail">Text to Video Engine Idle</div>
+                    </div>
+
+                    <div class="card video-card hidden" id="videoResultSection">
+                        <h3>🎬 Video Ready</h3>
+                        <div class="video-container">
+                            <video id="videoPlayer" controls width="100%"></video>
+                        </div>
+                        <div class="video-meta-info" id="videoMetaInfo"></div>
+                        <div class="audio-actions">
+                            <button id="downloadVideoBtn" class="btn btn-success">⬇️ Download MP4 Video</button>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </main>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="spinner-ring"></div>
+        <p id="loadingText">Processing…</p>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
