@@ -4,11 +4,23 @@ Gender (Male/Female) + Voice Preset for the entire story.
 """
 
 from flask import Flask, render_template, request, jsonify, send_file
+import sys
 import os
 import shutil
 import platform
 import time
 from datetime import datetime
+
+if hasattr(sys.stdout, 'reconfigure'):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
+if hasattr(sys.stderr, 'reconfigure'):
+    try:
+        sys.stderr.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
 
 if platform.system() == "Linux":
     os.environ["PATH"] = "/usr/bin:/usr/local/bin:" + os.environ.get("PATH", "")
